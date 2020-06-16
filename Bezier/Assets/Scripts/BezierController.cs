@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class BezierController : MonoBehaviour
@@ -14,7 +15,10 @@ public class BezierController : MonoBehaviour
     [SerializeField] private Button buttonValidateStep;
     
     [SerializeField] private GameObject[] curveShapes;
-    
+
+    [SerializeField] private Toggle buttonRepeatControlPoint;
+    [SerializeField] private Button buttonUseControlPoint;
+
     private List<Bezier> bezierList;
     private Bezier currentBezier;
 
@@ -25,11 +29,17 @@ public class BezierController : MonoBehaviour
 
     public static float step;
 
+    private bool wantToRepeatControlPoint;
+    private bool wantToUseControlPoint;
+
     private void Start()
     {
         step = sliderStep.value;
         bezierList = new List<Bezier>();
         buttonValidateStep.onClick.AddListener(ValidateStep);
+        
+        buttonRepeatControlPoint.onValueChanged.AddListener(ToggleRepeatControlPoint);
+        buttonUseControlPoint.onClick.AddListener(UseControlPoint);
     }
 
     private void ValidateStep()
@@ -40,6 +50,16 @@ public class BezierController : MonoBehaviour
         {
             bezier.CalculPoints();
         }
+    }
+
+    private void ToggleRepeatControlPoint(bool isOn)
+    {
+        wantToRepeatControlPoint = isOn;
+    }
+
+    private void UseControlPoint()
+    {
+        
     }
 
     private void Update()
@@ -56,7 +76,7 @@ public class BezierController : MonoBehaviour
             if (currentBezier != null && currentBezier.CheckBezierValid())
             {
                 currentBezier.CalculPoints();
-                currentBezier.ExtrudeBezier(curveShapes[0]);
+//                currentBezier.ExtrudeBezier(curveShapes[1]);
                 bezierList.Add(currentBezier);
                 currentBezier = null;
             }
@@ -93,12 +113,6 @@ public class BezierController : MonoBehaviour
         {
             int layer = hitInfo.collider.gameObject.layer;
 
-            if (layer == layerUi)
-            {
-                Debug.Log("ok");
-                return;
-            }
-            
             if (selectedControlPoint != null)
             {
                 selectedControlPoint = null;
@@ -116,7 +130,21 @@ public class BezierController : MonoBehaviour
                 AddPointToBezier();
             } else if (layer == layerControlPoint)
             {
-                SelectControlPoint(hitInfo.collider.gameObject);
+                if (wantToRepeatControlPoint)
+                {
+                    Bezier bezier = GetBezierFromControlPoint(hitInfo.collider.gameObject);
+
+                    if (bezier == null)
+                    {
+                        bezier = currentBezier;
+                    }
+                    
+                    bezier.DuplicateControlPoint(hitInfo.collider.gameObject, Instantiate(controlPointPrefab));
+                }
+                else
+                {
+                    SelectControlPoint(hitInfo.collider.gameObject);
+                }
             }
         }
     }
@@ -138,6 +166,16 @@ public class BezierController : MonoBehaviour
     {
         selectedControlPoint = controlPoint;
 
+        selectedBezier = GetBezierFromControlPoint(selectedControlPoint);
+
+        if (selectedBezier == null)
+        {
+            selectedBezier = currentBezier;
+        }
+    }
+
+    private Bezier GetBezierFromControlPoint(GameObject controlPoint)
+    {
         foreach (Bezier bezier in bezierList)
         {
             if (bezier.GetControlPoints().Contains(controlPoint))
@@ -146,9 +184,6 @@ public class BezierController : MonoBehaviour
             }
         }
 
-        if (selectedBezier == null)
-        {
-            selectedBezier = currentBezier;
-        }
+        return selectedBezier;
     }
 }

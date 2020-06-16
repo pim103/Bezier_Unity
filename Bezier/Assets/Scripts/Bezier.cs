@@ -45,7 +45,7 @@ public class Bezier
 
         List<Vector3> controlsPointVector = PositionOfControlPoints();
 
-        calculatedPoints.Add(controlsPointVector[0]);
+//        calculatedPoints.Add(controlsPointVector[0]);
 
         List<Vector3> points;
 
@@ -60,6 +60,11 @@ public class Bezier
                         (1 - t) * points[i].z + t * points[i + 1].z
                     );
                 }
+            }
+
+            if (calculatedPoints.Count > 0 && calculatedPoints[calculatedPoints.Count - 1] == points[0])
+            {
+                break;
             }
 
             calculatedPoints.Add(points[0]);
@@ -108,5 +113,24 @@ public class Bezier
         });
 
         return positions;
+    }
+
+    public void DuplicateControlPoint(GameObject controlPointToDuplicate, GameObject newControlPoint)
+    {
+        newControlPoint.transform.position = controlPointToDuplicate.transform.position;
+
+        int index = controlPoints.IndexOf(controlPointToDuplicate);
+        
+        if (index == -1)
+        {
+            return;
+        }
+        
+        controlPoints.Insert(controlPoints.IndexOf(controlPointToDuplicate), newControlPoint);
+
+        if (bezierIsSet)
+        {
+            CalculPoints();
+        }
     }
 }

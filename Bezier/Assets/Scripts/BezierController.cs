@@ -18,6 +18,9 @@ public class BezierController : MonoBehaviour
 
     [SerializeField] private Toggle buttonRepeatControlPoint;
     [SerializeField] private Button buttonUseControlPoint;
+    
+    [SerializeField] private Button circleButton;
+    [SerializeField] private Button squareButton;
 
     private List<Bezier> bezierList;
     private Bezier currentBezier;
@@ -32,6 +35,12 @@ public class BezierController : MonoBehaviour
     private bool wantToRepeatControlPoint;
     private bool wantToUseControlPoint;
 
+    private int selectedCurveMeshIndex;
+    private bool curveMode = true;
+
+    [SerializeField] private GameObject mainCamera;
+    [SerializeField] private GameObject movementCamera;
+
     private void Start()
     {
         step = sliderStep.value;
@@ -40,15 +49,21 @@ public class BezierController : MonoBehaviour
         
         buttonRepeatControlPoint.onValueChanged.AddListener(ToggleRepeatControlPoint);
         buttonUseControlPoint.onClick.AddListener(UseControlPoint);
+        circleButton.onClick.AddListener(delegate { SelectCurveMesh(0); });
+        squareButton.onClick.AddListener(delegate { SelectCurveMesh(1); });
     }
 
+    private void SelectCurveMesh(int index)
+    {
+        selectedCurveMeshIndex = index;
+    }
     private void ValidateStep()
     {
         step = sliderStep.value;
 
         foreach (Bezier bezier in bezierList)
         {
-            bezier.CalculPoints(curveShapes[0]);
+            bezier.CalculPoints(curveShapes[bezier.selectedShape]);
         }
     }
 
@@ -64,6 +79,25 @@ public class BezierController : MonoBehaviour
 
     private void Update()
     {
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            curveMode = !curveMode;
+            if (!curveMode)
+            {
+                mainCamera.SetActive(false);
+                movementCamera.SetActive(true);
+            }
+            else
+            {
+                mainCamera.SetActive(true);
+                movementCamera.SetActive(false);
+            }
+        }
+
+        if (!curveMode)
+        {
+            return;
+        }
         UpdateMousePosition();
         
         if (Input.GetMouseButtonDown(0))
@@ -75,12 +109,13 @@ public class BezierController : MonoBehaviour
         {
             if (currentBezier != null && currentBezier.CheckBezierValid())
             {
-                currentBezier.CalculPoints(curveShapes[0]);
+                currentBezier.selectedShape = selectedCurveMeshIndex;
+                currentBezier.CalculPoints(curveShapes[currentBezier.selectedShape]);
                 bezierList.Add(currentBezier);
                 currentBezier = null;
             }
         }
-
+        
         if (selectedControlPoint != null)
         {
             selectedControlPoint.transform.position = positionPointed;
@@ -117,7 +152,7 @@ public class BezierController : MonoBehaviour
                 selectedControlPoint = null;
                 if (selectedBezier.bezierIsSet)
                 {
-                    selectedBezier.CalculPoints(curveShapes[0]);
+                    selectedBezier.CalculPoints(curveShapes[selectedBezier.selectedShape]);
                 }
                 selectedBezier = null;
 
@@ -138,7 +173,7 @@ public class BezierController : MonoBehaviour
                         bezier = currentBezier;
                     }
                     
-                    bezier.DuplicateControlPoint(hitInfo.collider.gameObject, Instantiate(controlPointPrefab), curveShapes[0]);
+                    bezier.DuplicateControlPoint(hitInfo.collider.gameObject, Instantiate(controlPointPrefab), curveShapes[currentBezier.selectedShape]);
                 }
                 else
                 {

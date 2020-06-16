@@ -12,6 +12,8 @@ public class Bezier
     public bool bezierIsSet = false;
 
     public List<GameObject> curveObjects;
+
+    public int selectedShape;
     
     public Bezier(GameObject line)
     {
@@ -104,7 +106,10 @@ public class Bezier
             curveObjects.Add(newShape);
 
             Vector3 tangent = calculatedPoints[i-1] - calculatedPoints[i];
-            newShape.transform.rotation = Quaternion.LookRotation(tangent.normalized,Vector3.right);
+            //newShape.transform.rotation = Quaternion.LookRotation(tangent.normalized,Vector3.right);
+            tangent = tangent.normalized;
+            Vector3 right = Vector3.right;
+            newShape.transform.rotation = LookAt(ref tangent,ref right);
             //newShape.transform.Rotate(newShape.transform.up,90);
             /*normal = normal.normalized;
             normal.y = normal.z * 100;
@@ -119,6 +124,64 @@ public class Bezier
             //Debug.Log(angle);
             //newShape.transform.Rotate(newShape.transform.up,angle);
         }
+    }
+    
+    private Quaternion LookAt(ref Vector3 forward, ref Vector3 up)
+    {
+
+        forward = Vector3.Normalize(forward);
+        Vector3 right = Vector3.Normalize(Vector3.Cross(up, forward));
+        up = Vector3.Cross(forward, right);
+        float rX = right.x;
+        float rY = right.y;
+        float rZ = right.z;
+        float uX = up.x;
+        float uY = up.y;
+        float uZ = up.z;
+        float fX = forward.x;
+        float fY = forward.y;
+        float fZ = forward.z;
+
+
+        float num8 = (rX + uY) + fZ;
+        Quaternion quaternion = new Quaternion();
+        if (num8 > 0f)
+        {
+            float num = (float)System.Math.Sqrt(num8 + 1f);
+            quaternion.w = num * 0.5f;
+            num = 0.5f / num;
+            quaternion.x = (uZ - fY) * num;
+            quaternion.y = (fX - rZ) * num;
+            quaternion.z = (rY - uX) * num;
+            return quaternion;
+        }
+        if ((rX >= uY) && (rX >= fZ))
+        {
+            float num7 = (float)System.Math.Sqrt(((1f + rX) - uY) - fZ);
+            float num4 = 0.5f / num7;
+            quaternion.x = 0.5f * num7;
+            quaternion.y = (rY + uX) * num4;
+            quaternion.z = (rZ + fX) * num4;
+            quaternion.w = (uZ - fY) * num4;
+            return quaternion;
+        }
+        if (uY > fZ)
+        {
+            float num6 = (float)System.Math.Sqrt(((1f + uY) - rX) - fZ);
+            float num3 = 0.5f / num6;
+            quaternion.x = (uX + rY) * num3;
+            quaternion.y = 0.5f * num6;
+            quaternion.z = (fY + uZ) * num3;
+            quaternion.w = (fX - rZ) * num3;
+            return quaternion;
+        }
+        float num5 = (float)System.Math.Sqrt(((1f + fZ) - rX) - uY);
+        float num2 = 0.5f / num5;
+        quaternion.x = (fX + rZ) * num2;
+        quaternion.y = (fY + uZ) * num2;
+        quaternion.z = 0.5f * num5;
+        quaternion.w = (rY - uX) * num2;
+        return quaternion;
     }
 
     private List<Vector3> PositionOfControlPoints()

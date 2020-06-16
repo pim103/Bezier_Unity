@@ -12,7 +12,9 @@ public class BezierController : MonoBehaviour
 
     [SerializeField] private Slider sliderStep;
     [SerializeField] private Button buttonValidateStep;
-
+    
+    [SerializeField] private GameObject[] curveShapes;
+    
     private List<Bezier> bezierList;
     private Bezier currentBezier;
 
@@ -54,6 +56,7 @@ public class BezierController : MonoBehaviour
             if (currentBezier != null && currentBezier.CheckBezierValid())
             {
                 currentBezier.CalculPoints();
+                currentBezier.ExtrudeBezier(curveShapes[0]);
                 bezierList.Add(currentBezier);
                 currentBezier = null;
             }

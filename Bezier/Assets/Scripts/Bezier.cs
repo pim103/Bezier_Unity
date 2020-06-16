@@ -82,6 +82,21 @@ public class Bezier
         }
     }
 
+    public void ExtrudeBezier(GameObject curveShape)
+    {
+        for (int i = 0; i < calculatedPoints.Count; i++)
+        {
+            GameObject newShape = Object.Instantiate(curveShape, calculatedPoints[i], Quaternion.identity);
+            newShape.transform.Rotate(newShape.transform.right,90);
+            Vector3 normal = calculatedPoints[i] - calculatedPoints[(i + 1) % calculatedPoints.Count];
+            Debug.Log(normal.normalized);
+            //newShape.transform.forward = normal.normalized;
+            float angle =  Vector3.Angle(newShape.transform.forward,normal);
+            Debug.Log(angle);
+            newShape.transform.Rotate(newShape.transform.up,angle);
+        }
+    }
+
     private List<Vector3> PositionOfControlPoints()
     {
         List<Vector3> positions = new List<Vector3>();

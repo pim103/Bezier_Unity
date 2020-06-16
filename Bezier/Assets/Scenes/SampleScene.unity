@@ -1885,8 +1885,8 @@ MonoBehaviour:
   buttonUseControlPoint: {fileID: 144002613}
   circleButton: {fileID: 67657799}
   squareButton: {fileID: 757412645}
-  mainCamera: {fileID: 0}
-  movementCamera: {fileID: 0}
+  mainCamera: {fileID: 963194225}
+  movementCamera: {fileID: 1689630506}
 --- !u!1 &1368596687
 GameObject:
   m_ObjectHideFlags: 0
@@ -2128,6 +2128,7 @@ GameObject:
   - component: {fileID: 1689630509}
   - component: {fileID: 1689630508}
   - component: {fileID: 1689630507}
+  - component: {fileID: 1689630510}
   m_Layer: 0
   m_Name: MovementCamera
   m_TagString: MainCamera
@@ -2200,6 +2201,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1689630510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1689630506}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2b1b64fc7122c34a95ea16a42ed908b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1702504245
 GameObject:
   m_ObjectHideFlags: 0

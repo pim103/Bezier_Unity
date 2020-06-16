@@ -11,6 +11,8 @@ public class Bezier
 
     public bool bezierIsSet = false;
 
+    public List<GameObject> curveObjects;
+    
     public Bezier(GameObject line)
     {
         lineGameObject = line;
@@ -18,6 +20,7 @@ public class Bezier
         
         controlPoints = new List<GameObject>();
         calculatedPoints = new List<Vector3>();
+        curveObjects = new List<GameObject>();
     }
     
     public void AddControlPoints(GameObject controlPoint)
@@ -35,7 +38,7 @@ public class Bezier
         return controlPoints.Count > 2;
     }
 
-    public void CalculPoints()
+    public void CalculPoints(GameObject curveShape)
     {
         int nbPoints = controlPoints.Count;
 
@@ -74,9 +77,10 @@ public class Bezier
 
         bezierIsSet = true;
         ShowBezier();
+        ExtrudeBezier(curveShape);
     }
 
-    public void ShowBezier()
+    private void ShowBezier()
     {
         lineRenderer.positionCount = calculatedPoints.Count;
         lineRenderer.loop = false;
@@ -87,18 +91,33 @@ public class Bezier
         }
     }
 
-    public void ExtrudeBezier(GameObject curveShape)
+    private void ExtrudeBezier(GameObject curveShape)
     {
-        for (int i = 0; i < calculatedPoints.Count; i++)
+        foreach (var curveObject in curveObjects)
+        {
+            curveObject.SetActive(false);
+        }
+        curveObjects = new List<GameObject>();
+        for (int i = 1; i < calculatedPoints.Count-1; i++)
         {
             GameObject newShape = Object.Instantiate(curveShape, calculatedPoints[i], Quaternion.identity);
-            newShape.transform.Rotate(newShape.transform.right,90);
-            Vector3 normal = calculatedPoints[i] - calculatedPoints[(i + 1) % calculatedPoints.Count];
-            Debug.Log(normal.normalized);
+            curveObjects.Add(newShape);
+
+            Vector3 tangent = calculatedPoints[i-1] - calculatedPoints[i];
+            newShape.transform.rotation = Quaternion.LookRotation(tangent.normalized,Vector3.right);
+            //newShape.transform.Rotate(newShape.transform.up,90);
+            /*normal = normal.normalized;
+            normal.y = normal.z * 100;
+            normal.z = 90;
+            newShape.transform.localEulerAngles = normal;*/
+            
+
+            
+            //Debug.Log(normal.normalized);
             //newShape.transform.forward = normal.normalized;
-            float angle =  Vector3.Angle(newShape.transform.forward,normal);
-            Debug.Log(angle);
-            newShape.transform.Rotate(newShape.transform.up,angle);
+            //float angle =  Vector3.Angle(newShape.transform.forward,normal);
+            //Debug.Log(angle);
+            //newShape.transform.Rotate(newShape.transform.up,angle);
         }
     }
 
@@ -115,7 +134,7 @@ public class Bezier
         return positions;
     }
 
-    public void DuplicateControlPoint(GameObject controlPointToDuplicate, GameObject newControlPoint)
+    public void DuplicateControlPoint(GameObject controlPointToDuplicate, GameObject newControlPoint, GameObject curveShape)
     {
         newControlPoint.transform.position = controlPointToDuplicate.transform.position;
 
@@ -130,7 +149,7 @@ public class Bezier
 
         if (bezierIsSet)
         {
-            CalculPoints();
+            CalculPoints(curveShape);
         }
     }
 }

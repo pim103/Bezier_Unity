@@ -1440,7 +1440,8 @@ MonoBehaviour:
     type: 3}
   sliderStep: {fileID: 1702504247}
   buttonValidateStep: {fileID: 506079481}
-  curveShapes: []
+  curveShapes:
+  - {fileID: 3297866624944126370, guid: 715c7e2045af602459fe8efecf2fc96e, type: 3}
   buttonRepeatControlPoint: {fileID: 769400778}
   buttonUseControlPoint: {fileID: 144002613}
 --- !u!1 &1368596687

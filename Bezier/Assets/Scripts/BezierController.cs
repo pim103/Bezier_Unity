@@ -48,7 +48,7 @@ public class BezierController : MonoBehaviour
 
         foreach (Bezier bezier in bezierList)
         {
-            bezier.CalculPoints();
+            bezier.CalculPoints(curveShapes[0]);
         }
     }
 
@@ -75,8 +75,7 @@ public class BezierController : MonoBehaviour
         {
             if (currentBezier != null && currentBezier.CheckBezierValid())
             {
-                currentBezier.CalculPoints();
-//                currentBezier.ExtrudeBezier(curveShapes[1]);
+                currentBezier.CalculPoints(curveShapes[0]);
                 bezierList.Add(currentBezier);
                 currentBezier = null;
             }
@@ -118,7 +117,7 @@ public class BezierController : MonoBehaviour
                 selectedControlPoint = null;
                 if (selectedBezier.bezierIsSet)
                 {
-                    selectedBezier.CalculPoints();
+                    selectedBezier.CalculPoints(curveShapes[0]);
                 }
                 selectedBezier = null;
 
@@ -139,7 +138,7 @@ public class BezierController : MonoBehaviour
                         bezier = currentBezier;
                     }
                     
-                    bezier.DuplicateControlPoint(hitInfo.collider.gameObject, Instantiate(controlPointPrefab));
+                    bezier.DuplicateControlPoint(hitInfo.collider.gameObject, Instantiate(controlPointPrefab), curveShapes[0]);
                 }
                 else
                 {

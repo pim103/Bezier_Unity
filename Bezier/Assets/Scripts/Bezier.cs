@@ -9,6 +9,8 @@ public class Bezier
     private List<GameObject> controlPoints;
     private List<Vector3> calculatedPoints;
 
+    public bool bezierIsSet = false;
+
     public Bezier(GameObject line)
     {
         lineGameObject = line;
@@ -23,9 +25,9 @@ public class Bezier
         controlPoints.Add(controlPoint);
     }
 
-    public void ShowControlPoints()
+    public List<GameObject> GetControlPoints()
     {
-        
+        return controlPoints;
     }
 
     public bool CheckBezierValid()
@@ -64,6 +66,9 @@ public class Bezier
 
             calculatedPoints.Add(points[0]);
         }
+
+        bezierIsSet = true;
+        ShowBezier();
     }
 
     public void ShowBezier()

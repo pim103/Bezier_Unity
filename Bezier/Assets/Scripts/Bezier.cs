@@ -46,12 +46,10 @@ public class Bezier
         List<Vector3> controlsPointVector = PositionOfControlPoints();
 
         calculatedPoints.Add(controlsPointVector[0]);
-//        calculatedPoints.Add(controlsPointVector[controlsPointVector.Count - 1]);
 
         List<Vector3> points;
-        float step = 0.001f;
 
-        for (float t = 0; t < 1; t += step) {
+        for (float t = 0; t < 1; t += BezierController.step) {
             points = controlsPointVector;
 
             for (int j = 1; j < nbPoints; j++) {
@@ -66,6 +64,8 @@ public class Bezier
 
             calculatedPoints.Add(points[0]);
         }
+
+        calculatedPoints.Add(controlsPointVector[controlsPointVector.Count - 1]);
 
         bezierIsSet = true;
         ShowBezier();

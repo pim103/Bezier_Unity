@@ -3,13 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 public class BezierController : MonoBehaviour
 {
     [SerializeField] private GameObject prefabLine;
     [SerializeField] private GameObject controlPointPrefab;
-    
+
+    [SerializeField] private Slider sliderStep;
+    [SerializeField] private Button buttonValidateStep;
+
     private List<Bezier> bezierList;
     private Bezier currentBezier;
 
@@ -17,24 +20,24 @@ public class BezierController : MonoBehaviour
     private Bezier selectedBezier;
 
     private Vector3 positionPointed;
-    
-    private IEnumerator CalculPoints()
-    {
-        while (true)
-        {
-            foreach (Bezier bezier in bezierList)
-            {
-                bezier.ShowBezier();
-            }
 
-            yield return new WaitForSeconds(1.0f);
-        }
-    }
+    public static float step;
 
     private void Start()
     {
+        step = sliderStep.value;
         bezierList = new List<Bezier>();
-//        StartCoroutine(CalculPoints());
+        buttonValidateStep.onClick.AddListener(ValidateStep);
+    }
+
+    private void ValidateStep()
+    {
+        step = sliderStep.value;
+
+        foreach (Bezier bezier in bezierList)
+        {
+            bezier.CalculPoints();
+        }
     }
 
     private void Update()
@@ -81,23 +84,30 @@ public class BezierController : MonoBehaviour
         int layerControlPoint = LayerMask.NameToLayer("controlPoint");
         int layerLineRenderer = LayerMask.NameToLayer("lineRenderer");
         int layerGrid = LayerMask.NameToLayer("grid");
-
-        if (selectedControlPoint != null)
-        {
-            selectedControlPoint = null;
-            if (selectedBezier.bezierIsSet)
-            {
-                selectedBezier.CalculPoints();
-            }
-            selectedBezier = null;
-
-            return;
-        }
+        int layerUi = LayerMask.NameToLayer("UI");
 
         if (Physics.Raycast(ray, out hitInfo))
         {
             int layer = hitInfo.collider.gameObject.layer;
 
+            if (layer == layerUi)
+            {
+                Debug.Log("ok");
+                return;
+            }
+            
+            if (selectedControlPoint != null)
+            {
+                selectedControlPoint = null;
+                if (selectedBezier.bezierIsSet)
+                {
+                    selectedBezier.CalculPoints();
+                }
+                selectedBezier = null;
+
+                return;
+            }
+            
             if (layer == layerGrid)
             {
                 AddPointToBezier();

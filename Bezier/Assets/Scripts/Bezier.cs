@@ -110,25 +110,35 @@ public class Bezier
             tangent = tangent.normalized;
             Vector3 right = Vector3.right;
             newShape.transform.rotation = LookAt(ref tangent,ref right);
-            //newShape.transform.Rotate(newShape.transform.up,90);
-            /*normal = normal.normalized;
-            normal.y = normal.z * 100;
-            normal.z = 90;
-            newShape.transform.localEulerAngles = normal;*/
-            
-
-            
-            //Debug.Log(normal.normalized);
-            //newShape.transform.forward = normal.normalized;
-            //float angle =  Vector3.Angle(newShape.transform.forward,normal);
-            //Debug.Log(angle);
-            //newShape.transform.Rotate(newShape.transform.up,angle);
+            newShape.transform.localScale = new Vector3(newShape.transform.localScale.x,newShape.transform.localScale.y, Vector3.Distance(calculatedPoints[i-1], calculatedPoints[i])*10);
         }
+        
+        /*Mesh curveMesh = new Mesh();
+        lineRenderer.gameObject.AddComponent<MeshFilter>();
+        lineRenderer.gameObject.GetComponent<MeshFilter>().mesh = curveMesh;
+
+        Vector3[] curveObject1Vertices = curveObjects[0].transform.GetChild(0).GetComponent<MeshFilter>().mesh.vertices;
+        Vector3[] curveObject2Vertices = curveObjects[1].transform.GetChild(0).GetComponent<MeshFilter>().mesh.vertices;
+        
+        Vector3[] vertices = new Vector3[]
+        {
+            curveObject1Vertices[0],
+            curveObject1Vertices[1],
+            curveObject2Vertices[0]
+        };
+
+        int[] triangles = new int[]
+        {
+            0,1,2
+        };
+        
+        curveMesh.Clear();
+        curveMesh.vertices = vertices;
+        curveMesh.triangles = triangles;*/
     }
     
     private Quaternion LookAt(ref Vector3 forward, ref Vector3 up)
     {
-
         forward = Vector3.Normalize(forward);
         Vector3 right = Vector3.Normalize(Vector3.Cross(up, forward));
         up = Vector3.Cross(forward, right);

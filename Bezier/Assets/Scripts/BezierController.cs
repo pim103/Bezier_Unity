@@ -37,6 +37,7 @@ public class BezierController : MonoBehaviour
 
     private int selectedCurveMeshIndex;
     private bool curveMode = true;
+    private bool wantToStartFromcontrolPoint;
 
     [SerializeField] private GameObject mainCamera;
     [SerializeField] private GameObject movementCamera;
@@ -74,7 +75,7 @@ public class BezierController : MonoBehaviour
 
     private void UseControlPoint()
     {
-        
+        wantToStartFromcontrolPoint = true;
     }
 
     private void Update()
@@ -158,10 +159,10 @@ public class BezierController : MonoBehaviour
 
                 return;
             }
-            
+
             if (layer == layerGrid)
             {
-                AddPointToBezier();
+                AddPointToBezier(positionPointed);
             } else if (layer == layerControlPoint)
             {
                 if (wantToRepeatControlPoint)
@@ -174,6 +175,11 @@ public class BezierController : MonoBehaviour
                     }
 
                     bezier.DuplicateControlPoint(hitInfo.collider.gameObject, Instantiate(controlPointPrefab), curveShapes[bezier.selectedShape]);
+                } 
+                else if (wantToStartFromcontrolPoint)
+                {
+                    wantToStartFromcontrolPoint = false;
+                    AddSameControlPointToBezier(hitInfo.collider.gameObject);
                 }
                 else
                 {
@@ -183,7 +189,7 @@ public class BezierController : MonoBehaviour
         }
     }
 
-    private void AddPointToBezier()
+    private void AddPointToBezier(Vector3 position)
     {
         if (currentBezier == null)
         {
@@ -192,8 +198,19 @@ public class BezierController : MonoBehaviour
         }
 
         GameObject newControlPoint = Instantiate(controlPointPrefab);
-        newControlPoint.transform.position = positionPointed;
+        newControlPoint.transform.position = position;
         currentBezier.AddControlPoints(newControlPoint);
+    }
+
+    private void AddSameControlPointToBezier(GameObject controlPoint)
+    {
+        if (currentBezier == null)
+        {
+            GameObject newLine = Instantiate(prefabLine);
+            currentBezier = new Bezier(newLine);
+        }
+
+        currentBezier.AddControlPoints(controlPoint);
     }
 
     private void SelectControlPoint(GameObject controlPoint)

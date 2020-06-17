@@ -144,7 +144,7 @@ public class BezierController : MonoBehaviour
         int layerGrid = LayerMask.NameToLayer("grid");
         int layerUi = LayerMask.NameToLayer("UI");
 
-        if (Physics.Raycast(ray, out hitInfo))
+        if (Physics.Raycast(ray, out hitInfo, 1000, LayerMask.GetMask("grid","controlPoint")))
         {
             int layer = hitInfo.collider.gameObject.layer;
 

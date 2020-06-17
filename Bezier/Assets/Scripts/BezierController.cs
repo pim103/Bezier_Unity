@@ -172,8 +172,8 @@ public class BezierController : MonoBehaviour
                     {
                         bezier = currentBezier;
                     }
-                    
-                    bezier.DuplicateControlPoint(hitInfo.collider.gameObject, Instantiate(controlPointPrefab), curveShapes[currentBezier.selectedShape]);
+
+                    bezier.DuplicateControlPoint(hitInfo.collider.gameObject, Instantiate(controlPointPrefab), curveShapes[bezier.selectedShape]);
                 }
                 else
                 {

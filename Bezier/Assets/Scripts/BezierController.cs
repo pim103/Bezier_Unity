@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class BezierController : MonoBehaviour
@@ -21,6 +22,7 @@ public class BezierController : MonoBehaviour
     
     [SerializeField] private Button circleButton;
     [SerializeField] private Button squareButton;
+    [SerializeField] private Button resetButton;
 
     private List<Bezier> bezierList;
     private Bezier currentBezier;
@@ -52,6 +54,7 @@ public class BezierController : MonoBehaviour
         buttonUseControlPoint.onClick.AddListener(UseControlPoint);
         circleButton.onClick.AddListener(delegate { SelectCurveMesh(0); });
         squareButton.onClick.AddListener(delegate { SelectCurveMesh(1); });
+        resetButton.onClick.AddListener(delegate { SceneManager.LoadScene("SampleScene"); });
     }
 
     private void SelectCurveMesh(int index)

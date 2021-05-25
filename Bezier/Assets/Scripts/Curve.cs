@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
-public class Bezier
+public class Curve
 {
     private GameObject lineGameObject;
     private LineRenderer lineRenderer;
@@ -9,13 +11,16 @@ public class Bezier
     private List<GameObject> controlPoints;
     private List<Vector3> calculatedPoints;
 
-    public bool bezierIsSet = false;
+    public bool curveIsSet = false;
 
     public List<GameObject> curveObjects;
 
     public int selectedShape;
+    public float uValue;
+    public float vValue;
+    public int cutNb;
     
-    public Bezier(GameObject line)
+    public Curve(GameObject line)
     {
         lineGameObject = line;
         lineRenderer = line.GetComponent<LineRenderer>();
@@ -35,12 +40,12 @@ public class Bezier
         return controlPoints;
     }
 
-    public bool CheckBezierValid()
+    public bool CheckCurveValid()
     {
         return controlPoints.Count > 2;
     }
 
-    public void CalculPoints(GameObject curveShape)
+    public void CalculPointsBezier(GameObject curveShape)
     {
         int nbPoints = controlPoints.Count;
 
@@ -54,7 +59,7 @@ public class Bezier
 
         List<Vector3> points;
 
-        for (float t = 0; t < 1; t += BezierController.step) {
+        for (float t = 0; t < 1; t += CurveController.step) {
             points = controlsPointVector;
 
             for (int j = 1; j < nbPoints; j++) {
@@ -77,12 +82,49 @@ public class Bezier
 
         calculatedPoints.Add(controlsPointVector[controlsPointVector.Count - 1]);
 
-        bezierIsSet = true;
-        ShowBezier();
-        ExtrudeBezier(curveShape);
+        curveIsSet = true;
+        ShowCurve();
+        ExtrudeCurve(curveShape);
     }
 
-    private void ShowBezier()
+    public void CalculPointsChaikin(GameObject curveShape)
+    {
+        int nbPoints = controlPoints.Count;
+        calculatedPoints.Clear();
+        List<Vector3> controlsPointVector = PositionOfControlPoints();
+        Vector3 firstControlPoint = controlsPointVector[0];
+        Vector3 lastControlPoint = controlsPointVector[controlsPointVector.Count-1];
+
+        for (int k = 0; k < 3; ++k)
+        {
+            calculatedPoints.Clear();
+            nbPoints = controlsPointVector.Count;
+            for (int i = 0; i < nbPoints - 1; ++i)
+            {
+                calculatedPoints.Add(new Vector3(
+                    controlsPointVector[i].x + ((controlsPointVector[i + 1].x - controlsPointVector[i].x) * uValue),
+                    -50,
+                    controlsPointVector[i].z + ((controlsPointVector[i + 1].z - controlsPointVector[i].z) * uValue)));
+                calculatedPoints.Add(new Vector3(
+                    controlsPointVector[i].x +
+                    ((controlsPointVector[i + 1].x - controlsPointVector[i].x) * (1 - vValue)),
+                    -50,
+                    controlsPointVector[i].z +
+                    ((controlsPointVector[i + 1].z - controlsPointVector[i].z) * (1 - vValue))));
+            }
+            controlsPointVector.Clear();
+            controlsPointVector.AddRange(calculatedPoints);
+        }
+        calculatedPoints.Insert(0,firstControlPoint);
+        calculatedPoints.Add(lastControlPoint);
+        curveIsSet = true;
+        ShowCurve();
+        //ShowPoints(curveShape);
+        //ExtrudeCurve(curveShape);
+        Debug.Log("done");
+    }
+
+    private void ShowCurve()
     {
         lineRenderer.positionCount = calculatedPoints.Count;
         lineRenderer.loop = false;
@@ -92,8 +134,15 @@ public class Bezier
             lineRenderer.SetPosition(i, calculatedPoints[i]);
         }
     }
+    private void ShowPoints(GameObject curveShape)
+    {
+        for (int i = 0; i < calculatedPoints.Count; ++i)
+        {
+            GameObject newShape = Object.Instantiate(curveShape, calculatedPoints[i], Quaternion.identity);
+        }
+    }
 
-    private void ExtrudeBezier(GameObject curveShape)
+    private void ExtrudeCurve(GameObject curveShape)
     {
         foreach (var curveObject in curveObjects)
         {
@@ -165,9 +214,9 @@ public class Bezier
         
         controlPoints.Insert(controlPoints.IndexOf(controlPointToDuplicate), newControlPoint);
 
-        if (bezierIsSet)
+        if (curveIsSet)
         {
-            CalculPoints(curveShape);
+            CalculPointsBezier(curveShape);
         }
     }
 }

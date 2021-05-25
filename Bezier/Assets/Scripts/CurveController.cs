@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class BezierController : MonoBehaviour
+public class CurveController : MonoBehaviour
 {
     [SerializeField] private GameObject prefabLine;
     [SerializeField] private GameObject controlPointPrefab;
@@ -18,23 +18,31 @@ public class BezierController : MonoBehaviour
     [SerializeField] private GameObject[] curveShapes;
 
     [SerializeField] private Toggle buttonRepeatControlPoint;
+    [SerializeField] private Toggle toggleBezierMode;
+    [SerializeField] private Toggle toggleChaikinMode;
     [SerializeField] private Button buttonUseControlPoint;
     
     [SerializeField] private Button circleButton;
     [SerializeField] private Button squareButton;
     [SerializeField] private Button resetButton;
+    
+    [SerializeField] private InputField uInput;
+    [SerializeField] private InputField vInput;
+    [SerializeField] private InputField cutInput;
 
-    private List<Bezier> bezierList;
-    private Bezier currentBezier;
+    private List<Curve> curveList;
+    private Curve currentCurve;
 
     private GameObject selectedControlPoint;
-    private Bezier selectedBezier;
+    private Curve selectedCurve;
 
     private Vector3 positionPointed;
 
     public static float step;
 
     private bool wantToRepeatControlPoint;
+    private bool bezierMode;
+    private bool chaikinMode;
     private bool wantToUseControlPoint;
 
     private int selectedCurveMeshIndex;
@@ -47,14 +55,18 @@ public class BezierController : MonoBehaviour
     private void Start()
     {
         step = sliderStep.value;
-        bezierList = new List<Bezier>();
+        curveList = new List<Curve>();
         buttonValidateStep.onClick.AddListener(ValidateStep);
         
         buttonRepeatControlPoint.onValueChanged.AddListener(ToggleRepeatControlPoint);
+        toggleBezierMode.onValueChanged.AddListener(ToggleBezierMode);
+        toggleChaikinMode.onValueChanged.AddListener(ToggleChaikinMode);
         buttonUseControlPoint.onClick.AddListener(UseControlPoint);
         circleButton.onClick.AddListener(delegate { SelectCurveMesh(0); });
         squareButton.onClick.AddListener(delegate { SelectCurveMesh(1); });
         resetButton.onClick.AddListener(delegate { SceneManager.LoadScene("SampleScene"); });
+        /*uInput.onValueChanged.AddListener(ChangeUValue);
+        uInput.onValueChanged.AddListener(ChangeVValue);*/
     }
 
     private void SelectCurveMesh(int index)
@@ -65,15 +77,31 @@ public class BezierController : MonoBehaviour
     {
         step = sliderStep.value;
 
-        foreach (Bezier bezier in bezierList)
+        foreach (Curve bezier in curveList)
         {
-            bezier.CalculPoints(curveShapes[bezier.selectedShape]);
+            bezier.CalculPointsBezier(curveShapes[bezier.selectedShape]);
         }
     }
 
     private void ToggleRepeatControlPoint(bool isOn)
     {
         wantToRepeatControlPoint = isOn;
+    }
+    private void ToggleBezierMode(bool isOn)
+    {
+        bezierMode = isOn;
+    }
+    private void ToggleChaikinMode(bool isOn)
+    {
+        chaikinMode = isOn;
+    }
+    private void ChangeUValue(string input)
+    {
+        currentCurve.uValue = float.Parse(input);
+    }
+    private void ChangeVValue(string input)
+    {
+        currentCurve.vValue = float.Parse(input);
     }
 
     private void UseControlPoint()
@@ -111,12 +139,22 @@ public class BezierController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Return))
         {
-            if (currentBezier != null && currentBezier.CheckBezierValid())
+            if (bezierMode && currentCurve != null && currentCurve.CheckCurveValid())
             {
-                currentBezier.selectedShape = selectedCurveMeshIndex;
-                currentBezier.CalculPoints(curveShapes[currentBezier.selectedShape]);
-                bezierList.Add(currentBezier);
-                currentBezier = null;
+                currentCurve.selectedShape = selectedCurveMeshIndex;
+                currentCurve.CalculPointsBezier(curveShapes[currentCurve.selectedShape]);
+                curveList.Add(currentCurve);
+                currentCurve = null;
+            }
+            if (chaikinMode && currentCurve != null && currentCurve.CheckCurveValid())
+            {
+                currentCurve.selectedShape = selectedCurveMeshIndex;
+                currentCurve.uValue = float.Parse(uInput.text);
+                currentCurve.vValue = float.Parse(vInput.text);
+                currentCurve.cutNb = int.Parse(cutInput.text);
+                currentCurve.CalculPointsChaikin(curveShapes[currentCurve.selectedShape]);
+                curveList.Add(currentCurve);
+                currentCurve = null;
             }
         }
         
@@ -154,11 +192,11 @@ public class BezierController : MonoBehaviour
             if (selectedControlPoint != null)
             {
                 selectedControlPoint = null;
-                if (selectedBezier.bezierIsSet)
+                if (selectedCurve.curveIsSet)
                 {
-                    selectedBezier.CalculPoints(curveShapes[selectedBezier.selectedShape]);
+                    selectedCurve.CalculPointsBezier(curveShapes[selectedCurve.selectedShape]);
                 }
-                selectedBezier = null;
+                selectedCurve = null;
 
                 return;
             }
@@ -170,14 +208,14 @@ public class BezierController : MonoBehaviour
             {
                 if (wantToRepeatControlPoint)
                 {
-                    Bezier bezier = GetBezierFromControlPoint(hitInfo.collider.gameObject);
+                    Curve curve = GetBezierFromControlPoint(hitInfo.collider.gameObject);
 
-                    if (bezier == null)
+                    if (curve == null)
                     {
-                        bezier = currentBezier;
+                        curve = currentCurve;
                     }
 
-                    bezier.DuplicateControlPoint(hitInfo.collider.gameObject, Instantiate(controlPointPrefab), curveShapes[bezier.selectedShape]);
+                    curve.DuplicateControlPoint(hitInfo.collider.gameObject, Instantiate(controlPointPrefab), curveShapes[curve.selectedShape]);
                 } 
                 else if (wantToStartFromcontrolPoint)
                 {
@@ -194,50 +232,50 @@ public class BezierController : MonoBehaviour
 
     private void AddPointToBezier(Vector3 position)
     {
-        if (currentBezier == null)
+        if (currentCurve == null)
         {
             GameObject newLine = Instantiate(prefabLine);
-            currentBezier = new Bezier(newLine);
+            currentCurve = new Curve(newLine);
         }
 
         GameObject newControlPoint = Instantiate(controlPointPrefab);
         newControlPoint.transform.position = position;
-        currentBezier.AddControlPoints(newControlPoint);
+        currentCurve.AddControlPoints(newControlPoint);
     }
 
     private void AddSameControlPointToBezier(GameObject controlPoint)
     {
-        if (currentBezier == null)
+        if (currentCurve == null)
         {
             GameObject newLine = Instantiate(prefabLine);
-            currentBezier = new Bezier(newLine);
+            currentCurve = new Curve(newLine);
         }
 
-        currentBezier.AddControlPoints(controlPoint);
+        currentCurve.AddControlPoints(controlPoint);
     }
 
     private void SelectControlPoint(GameObject controlPoint)
     {
         selectedControlPoint = controlPoint;
 
-        selectedBezier = GetBezierFromControlPoint(selectedControlPoint);
+        selectedCurve = GetBezierFromControlPoint(selectedControlPoint);
 
-        if (selectedBezier == null)
+        if (selectedCurve == null)
         {
-            selectedBezier = currentBezier;
+            selectedCurve = currentCurve;
         }
     }
 
-    private Bezier GetBezierFromControlPoint(GameObject controlPoint)
+    private Curve GetBezierFromControlPoint(GameObject controlPoint)
     {
-        foreach (Bezier bezier in bezierList)
+        foreach (Curve bezier in curveList)
         {
             if (bezier.GetControlPoints().Contains(controlPoint))
             {
-                selectedBezier = bezier;
+                selectedCurve = bezier;
             }
         }
 
-        return selectedBezier;
+        return selectedCurve;
     }
 }
